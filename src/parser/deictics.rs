@@ -48,7 +48,7 @@ fn weekday_calc(dow: Weekday, offset: i8) -> ParsedDate {
     ParsedDate::from_ymd(ts.year(), ts.month(), ts.day())
 }
 
-named!(pub weekday <&[u8], Option<ParsedDate>>,
+named!(pub base_weekday <&[u8], Option<ParsedDate>>,
     alt_complete!(
         tag_no_case!("Monday") => { |_| Some(weekday_calc(Weekday::Mon, 7)) } |
         tag_no_case!("Tuesday") => { |_| Some(weekday_calc(Weekday::Tue, 7)) } |
@@ -59,3 +59,19 @@ named!(pub weekday <&[u8], Option<ParsedDate>>,
         tag_no_case!("Sunday") => { |_| Some(weekday_calc(Weekday::Sun, 7)) }
     )
 );
+
+/*
+// NB: when we have a parser for ambiguity, we should flag this; on a Monday,
+// what does "next Sunday" mean -- six or thirteen days from now?
+named!(next_weekday <&[u8], Option<ParsedDate>>,
+    alt_complete!(
+        tag_no_case!("Monday") => { |_| Some(weekday_calc(Weekday::Mon, 7)) } |
+        tag_no_case!("Tuesday") => { |_| Some(weekday_calc(Weekday::Tue, 7)) } |
+        tag_no_case!("Wednesday") => { |_| Some(weekday_calc(Weekday::Wed, 7)) } |
+        tag_no_case!("Thursday") => { |_| Some(weekday_calc(Weekday::Thu, 7)) } |
+        tag_no_case!("Friday") => { |_| Some(weekday_calc(Weekday::Fri, 7)) } |
+        tag_no_case!("Saturday") => { |_| Some(weekday_calc(Weekday::Sat, 7)) } |
+        tag_no_case!("Sunday") => { |_| Some(weekday_calc(Weekday::Sun, 7)) }
+    )
+);
+*/
