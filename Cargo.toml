@@ -7,3 +7,7 @@ authors = ["Steve Cook <scook@saymedia.com>"]
 chrono = "0.3"
 nom = "^2.1"
 time = "^0.1.36"
+
+[[bin]]
+name = "main"
+doc = false

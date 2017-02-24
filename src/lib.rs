@@ -116,5 +116,28 @@ mod tests {
         assert_eq!(date, ParsedDate::from_ymd(2017, 1, 1));
         date.shift(Period::Day, -1);
         assert_eq!(date, ParsedDate::from_ymd(2016, 12, 31));
+        date.shift(Period::Week, 2);
+        assert_eq!(date, ParsedDate::from_ymd(2017, 1, 14));
+        date.shift(Period::Month, 2);
+        assert_eq!(date, ParsedDate::from_ymd(2017, 3, 14));
+        date.shift(Period::Month, -1);
+        assert_eq!(date, ParsedDate::from_ymd(2017, 2, 14));
+        date.shift(Period::Week, -2);
+        assert_eq!(date, ParsedDate::from_ymd(2017, 1, 31));
+        // Adding a month that shifts you into a non-existent
+        // day gives you the last day of the next month.
+        date.shift(Period::Month, 1);
+        assert_eq!(date, ParsedDate::from_ymd(2017, 2, 28));
+        date.shift(Period::Year, 1);
+        assert_eq!(date, ParsedDate::from_ymd(2018, 2, 28));
+        date.shift(Period::Year, -1);
+        assert_eq!(date, ParsedDate::from_ymd(2017, 2, 28));
+    }
+
+    #[test]
+    fn date_shift_leap_year() {
+        let mut date = ParsedDate::from_ymd(2016, 2, 29);
+        date.shift(Period::Year, 1);
+        assert_eq!(date, ParsedDate::from_ymd(2017, 3, 1));
     }
 }
