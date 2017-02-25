@@ -1,4 +1,4 @@
-use super::super::{ParsedDate, Period};
+use super::super::ParsedDate;
 use chrono::prelude::*;
 use time::Duration;
 
@@ -36,7 +36,7 @@ enum Weekday {
     Sun = 6,
 }
 
-fn weekday_calc(dow: Weekday, offset: i8) -> ParsedDate {
+fn weekday_calc(dow: Weekday, offset: i8, mut weekshift: i8) -> ParsedDate {
     let today = Local::today();
     let today_dow = today.weekday() as i8;
     let diff = match ( dow as i8 - today_dow + offset ) % 7 {
@@ -44,54 +44,81 @@ fn weekday_calc(dow: Weekday, offset: i8) -> ParsedDate {
         x if x < 7 => x,
         _ => unreachable!("Bad weekday diff"),
     };
-    let ts = today + Duration::days(diff as i64);
+    if diff == 7 && weekshift != 0 {
+        weekshift = weekshift - 1;
+    }
+    let ts = today + Duration::days(diff as i64) + Duration::days(7*weekshift as i64);
     ParsedDate::from_ymd(ts.year(), ts.month(), ts.day())
 }
 
-named!(pub base_weekday <&[u8], Option<ParsedDate>>,
+named!(which_weekday_full <&[u8], Weekday>,
     alt_complete!(
-        tag_no_case!("Monday") => { |_| Some(weekday_calc(Weekday::Mon, 7)) } |
-        tag_no_case!("Tuesday") => { |_| Some(weekday_calc(Weekday::Tue, 7)) } |
-        tag_no_case!("Wednesday") => { |_| Some(weekday_calc(Weekday::Wed, 7)) } |
-        tag_no_case!("Thursday") => { |_| Some(weekday_calc(Weekday::Thu, 7)) } |
-        tag_no_case!("Friday") => { |_| Some(weekday_calc(Weekday::Fri, 7)) } |
-        tag_no_case!("Saturday") => { |_| Some(weekday_calc(Weekday::Sat, 7)) } |
-        tag_no_case!("Sunday") => { |_| Some(weekday_calc(Weekday::Sun, 7)) }
+        tag_no_case!("Monday") => { |_| Weekday::Mon } |
+        tag_no_case!("Tuesday") => { |_| Weekday::Tue } |
+        tag_no_case!("Wednesday") => { |_| Weekday::Wed } |
+        tag_no_case!("Thursday") => { |_| Weekday::Thu } |
+        tag_no_case!("Friday") => { |_| Weekday::Fri } |
+        tag_no_case!("Saturday") => { |_| Weekday::Sat } |
+        tag_no_case!("Sunday") => { |_| Weekday::Sun }
     )
 );
 
-named!(pub last_weekday <&[u8], Option<ParsedDate>>,
-    ws!(
-        do_parse!(
-            d: preceded!(tag_no_case!("last"), base_weekday) >>
-            ({
-                if d.is_some() {
-                    let mut nd = d.expect("Unreachable failure in weekday");
-                    nd.shift(Period::Day, -7);
-                    Some(nd)
-                } else {
-                    None
-                }
-            })
+named!(which_weekday_abbr <&[u8], Weekday>,
+    alt_complete!(
+        tag_no_case!("Mon") => { |_| Weekday::Mon } |
+        tag_no_case!("Tues") => { |_| Weekday::Tue } |
+        tag_no_case!("Tue") => { |_| Weekday::Tue } |
+        tag_no_case!("Wed") => { |_| Weekday::Wed } |
+        tag_no_case!("Thurs") => { |_| Weekday::Thu } |
+        tag_no_case!("Thu") => { |_| Weekday::Thu } |
+        tag_no_case!("Fri") => { |_| Weekday::Fri } |
+        tag_no_case!("Sat") => { |_| Weekday::Sat } |
+        tag_no_case!("Sun") => { |_| Weekday::Sun }
+    )
+);
+
+named!(which_weekday <&[u8], Weekday>,
+    alt_complete!(
+        terminated!(which_weekday_abbr, tag!(".")) |
+        which_weekday_abbr |
+        which_weekday_full
+    )
+);
+
+named!(base_weekday <&[u8], Option<ParsedDate>>,
+    do_parse!(
+        wd: which_weekday >> (
+            Some(weekday_calc(wd, 7, 0))
         )
     )
 );
 
 // NB: when we have a parser for ambiguity, we should flag this; on a Monday,
 // what does "next Sunday" mean -- six or thirteen days from now?
-named!(pub next_weekday <&[u8], Option<ParsedDate>>,
+named!(next_weekday <&[u8], Option<ParsedDate>>,
     ws!(
         do_parse!(
-            d: preceded!(tag_no_case!("next"), base_weekday) >>
-            ({
-                if d.is_some() {
-                    let mut nd = d.expect("Unreachable failure in weekday");
-                    nd.shift(Period::Day, 7);
-                    Some(nd)
-                } else {
-                    None
-                }
-            })
+            wd: preceded!(tag_no_case!("next"), which_weekday) >> (
+                Some(weekday_calc(wd, 7, 1))
+            )
         )
+    )
+);
+
+named!(last_weekday <&[u8], Option<ParsedDate>>,
+    ws!(
+        do_parse!(
+            wd: preceded!(tag_no_case!("last"), which_weekday) >> (
+                Some(weekday_calc(wd, 7, -1))
+            )
+        )
+    )
+);
+
+named!(pub weekday <&[u8], Option<ParsedDate>>,
+    alt_complete!(
+        last_weekday |
+        next_weekday |
+        base_weekday
     )
 );

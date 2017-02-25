@@ -1,13 +1,13 @@
 mod deictics;
 
 use nom;
-use self::deictics::{indexical, next_weekday, last_weekday, base_weekday};
+use self::deictics::{indexical, weekday};
 use super::ParsedDate;
 
 named!(pub date_token <&[u8], Option<ParsedDate>>,
     ws!(
         alt_complete!(
-            indexical | base_weekday | last_weekday | next_weekday
+            indexical | weekday
         )
     )
 );
