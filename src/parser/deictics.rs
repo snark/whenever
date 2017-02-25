@@ -1,4 +1,4 @@
-use super::super::ParsedDate;
+use super::super::{ParsedDate, Period};
 use chrono::prelude::*;
 use time::Duration;
 
@@ -60,18 +60,38 @@ named!(pub base_weekday <&[u8], Option<ParsedDate>>,
     )
 );
 
-/*
-// NB: when we have a parser for ambiguity, we should flag this; on a Monday,
-// what does "next Sunday" mean -- six or thirteen days from now?
-named!(next_weekday <&[u8], Option<ParsedDate>>,
-    alt_complete!(
-        tag_no_case!("Monday") => { |_| Some(weekday_calc(Weekday::Mon, 7)) } |
-        tag_no_case!("Tuesday") => { |_| Some(weekday_calc(Weekday::Tue, 7)) } |
-        tag_no_case!("Wednesday") => { |_| Some(weekday_calc(Weekday::Wed, 7)) } |
-        tag_no_case!("Thursday") => { |_| Some(weekday_calc(Weekday::Thu, 7)) } |
-        tag_no_case!("Friday") => { |_| Some(weekday_calc(Weekday::Fri, 7)) } |
-        tag_no_case!("Saturday") => { |_| Some(weekday_calc(Weekday::Sat, 7)) } |
-        tag_no_case!("Sunday") => { |_| Some(weekday_calc(Weekday::Sun, 7)) }
+named!(pub last_weekday <&[u8], Option<ParsedDate>>,
+    ws!(
+        do_parse!(
+            d: preceded!(tag_no_case!("last"), base_weekday) >>
+            ({
+                if d.is_some() {
+                    let mut nd = d.expect("Unreachable failure in weekday");
+                    nd.shift(Period::Day, -7);
+                    Some(nd)
+                } else {
+                    None
+                }
+            })
+        )
     )
 );
-*/
+
+// NB: when we have a parser for ambiguity, we should flag this; on a Monday,
+// what does "next Sunday" mean -- six or thirteen days from now?
+named!(pub next_weekday <&[u8], Option<ParsedDate>>,
+    ws!(
+        do_parse!(
+            d: preceded!(tag_no_case!("next"), base_weekday) >>
+            ({
+                if d.is_some() {
+                    let mut nd = d.expect("Unreachable failure in weekday");
+                    nd.shift(Period::Day, 7);
+                    Some(nd)
+                } else {
+                    None
+                }
+            })
+        )
+    )
+);
