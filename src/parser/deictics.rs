@@ -2,24 +2,24 @@ use super::super::ParsedDate;
 use chrono::prelude::*;
 use time::Duration;
 
-named!(pub indexical <&[u8], Option<ParsedDate>>,
+named!(pub indexical <&[u8], ParsedDate>,
     alt_complete!(
         tag_no_case!("today") => { |_|
             {
                 let today = Local::today();
-                Some(ParsedDate::from_ymd(today.year(), today.month(), today.day()))
+                ParsedDate::from_ymd(today.year(), today.month(), today.day())
             }
         } |
         tag_no_case!("tomorrow") => { |_|
             {
                 let ts = Local::today() + Duration::days(1);
-                Some(ParsedDate::from_ymd(ts.year(), ts.month(), ts.day()))
+                ParsedDate::from_ymd(ts.year(), ts.month(), ts.day())
             }
         } |
         tag_no_case!("yesterday") => { |_|
             {
                 let ts = Local::today() - Duration::days(1);
-                Some(ParsedDate::from_ymd(ts.year(), ts.month(), ts.day()))
+                ParsedDate::from_ymd(ts.year(), ts.month(), ts.day())
             }
         }
     )
@@ -85,37 +85,37 @@ named!(which_weekday <&[u8], Weekday>,
     )
 );
 
-named!(base_weekday <&[u8], Option<ParsedDate>>,
+named!(base_weekday <&[u8], ParsedDate>,
     do_parse!(
         wd: which_weekday >> (
-            Some(weekday_calc(wd, 7, 0))
+            weekday_calc(wd, 7, 0)
         )
     )
 );
 
 // NB: when we have a parser for ambiguity, we should flag this; on a Monday,
 // what does "next Sunday" mean -- six or thirteen days from now?
-named!(next_weekday <&[u8], Option<ParsedDate>>,
+named!(next_weekday <&[u8], ParsedDate>,
     ws!(
         do_parse!(
             wd: preceded!(tag_no_case!("next"), which_weekday) >> (
-                Some(weekday_calc(wd, 7, 1))
+                weekday_calc(wd, 7, 1)
             )
         )
     )
 );
 
-named!(last_weekday <&[u8], Option<ParsedDate>>,
+named!(last_weekday <&[u8], ParsedDate>,
     ws!(
         do_parse!(
             wd: preceded!(tag_no_case!("last"), which_weekday) >> (
-                Some(weekday_calc(wd, 7, -1))
+                weekday_calc(wd, 7, -1)
             )
         )
     )
 );
 
-named!(pub weekday <&[u8], Option<ParsedDate>>,
+named!(pub weekday <&[u8], ParsedDate>,
     alt_complete!(
         last_weekday |
         next_weekday |
