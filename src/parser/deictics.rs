@@ -4,7 +4,7 @@ use time::Duration;
 
 named!(pub indexical <&[u8], ParsedDate>,
     alt_complete!(
-        tag_no_case!("today") => { |_|
+        alt!(tag_no_case!("today") | tag_no_case!("now")) => { |_|
             {
                 let today = Local::today();
                 ParsedDate::from_ymd(today.year(), today.month(), today.day())
