@@ -1,5 +1,7 @@
 #![macro_use]
 
+use super::super::Period;
+
 named!(pub numbers_longform <&[u8], i8>,
     alt_complete!(
         tag_no_case!("zero") => { |_| 0 } |
@@ -25,5 +27,18 @@ named!(pub numbers_longform <&[u8], i8>,
         tag_no_case!("eighteen") => { |_| 18 } |
         tag_no_case!("nineteen") => { |_| 19 } |
         tag_no_case!("twenty") => { |_| 20 }
+    )
+);
+
+named!(pub periods <&[u8], Period>,
+    alt_complete!(
+        tag_no_case!("days") => { |_| Period::Day } |
+        tag_no_case!("day") => { |_| Period::Day } |
+        tag_no_case!("weeks") => { |_| Period::Week } |
+        tag_no_case!("week") => { |_| Period::Week } |
+        tag_no_case!("months") => { |_| Period::Month } |
+        tag_no_case!("month") => { |_| Period::Month } |
+        tag_no_case!("years") => { |_| Period::Year } |
+        tag_no_case!("year") => { |_| Period::Year }
     )
 );

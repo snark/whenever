@@ -1,5 +1,5 @@
-use super::super::{ParsedDate, Period};
-use super::helper_macros::numbers_longform;
+use super::super::{ParsedDate};
+use super::helper_macros::{periods, numbers_longform};
 use super::date_token;
 
 named!(sign <&[u8], i8>,
@@ -11,19 +11,6 @@ named!(sign <&[u8], i8>,
     )
 );
 
-
-named!(periods <&[u8], Period>,
-    alt_complete!(
-        tag_no_case!("days") => { |_| Period::Day } |
-        tag_no_case!("day") => { |_| Period::Day } |
-        tag_no_case!("weeks") => { |_| Period::Week } |
-        tag_no_case!("week") => { |_| Period::Week } |
-        tag_no_case!("months") => { |_| Period::Month } |
-        tag_no_case!("month") => { |_| Period::Month } |
-        tag_no_case!("years") => { |_| Period::Year } |
-        tag_no_case!("year") => { |_| Period::Year }
-    )
-);
 
 named!(pub offset <&[u8], ParsedDate>,
     ws!(

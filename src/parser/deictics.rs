@@ -1,8 +1,9 @@
 use super::super::ParsedDate;
 use chrono::prelude::*;
 use time::Duration;
+use super::helper_macros::periods;
 
-named!(pub indexical <&[u8], ParsedDate>,
+named!(indexical_unit <&[u8], ParsedDate>,
     alt_complete!(
         alt!(tag_no_case!("today") | tag_no_case!("now")) => { |_|
             {
@@ -22,6 +23,36 @@ named!(pub indexical <&[u8], ParsedDate>,
                 ParsedDate::from_ymd(ts.year(), ts.month(), ts.day())
             }
         }
+    )
+);
+
+named!(next_last <&[u8], i16>,
+    alt_complete!(
+        tag_no_case!("next") => { |_| 1 } |
+        tag_no_case!("last") => { |_| -1 }
+    )
+);
+
+named!(indexical_phrase <&[u8], ParsedDate>,
+    ws!(
+        do_parse!(
+            sign: next_last >>
+            period: periods >>
+            (
+                {
+                    let ts = Local::today();
+                    let mut pd = ParsedDate::from_ymd(ts.year(), ts.month(), ts.day());
+                    pd.shift(period, sign);
+                    pd
+                }
+            )
+        )
+    )
+);
+
+named!(pub indexical <&[u8], ParsedDate>,
+    alt_complete!(
+        indexical_phrase | indexical_unit
     )
 );
 
