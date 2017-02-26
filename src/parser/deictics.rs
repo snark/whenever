@@ -70,7 +70,7 @@ enum Weekday {
 fn weekday_calc(dow: Weekday, offset: i8, mut weekshift: i8) -> ParsedDate {
     let today = Local::today();
     let today_dow = today.weekday() as i8;
-    let diff = match ( dow as i8 - today_dow + offset ) % 7 {
+    let diff = match (dow as i8 - today_dow + offset) % 7 {
         x if x == 0 => 7,
         x if x < 7 => x,
         _ => unreachable!("Bad weekday diff"),
@@ -78,7 +78,7 @@ fn weekday_calc(dow: Weekday, offset: i8, mut weekshift: i8) -> ParsedDate {
     if diff == 7 && weekshift != 0 {
         weekshift = weekshift - 1;
     }
-    let ts = today + Duration::days(diff as i64) + Duration::days(7*weekshift as i64);
+    let ts = today + Duration::days(diff as i64) + Duration::days(7 * weekshift as i64);
     ParsedDate::from_ymd(ts.year(), ts.month(), ts.day())
 }
 

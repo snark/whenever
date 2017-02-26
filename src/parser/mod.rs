@@ -21,9 +21,10 @@ pub fn parse_date(date_str: &str) -> Option<ParsedDate> {
     match date_token(date_str.as_bytes()) {
         nom::IResult::Done(_, d) => Some(d),
         nom::IResult::Error(_) => None,
-        nom::IResult::Incomplete(_) => unreachable!(
+        nom::IResult::Incomplete(_) => {
+            unreachable!(
             "Incomplete parse received from date_token"
         )
+        }
     }
 }
-

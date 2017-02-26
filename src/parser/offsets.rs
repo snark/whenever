@@ -1,4 +1,4 @@
-use super::super::{ParsedDate};
+use super::super::ParsedDate;
 use super::helper_macros::{periods, numbers_longform};
 use super::date_token;
 
@@ -29,5 +29,3 @@ named!(pub offset <&[u8], ParsedDate>,
         )
     )
 );
-
-

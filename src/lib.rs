@@ -23,26 +23,22 @@ pub enum Period {
     Day,
     Month,
     Week,
-    Year
+    Year,
 }
 
 /// A parsed date.
 ///
 /// Currently this object is simply a struct wrapper around a chrono NaiveDate object
-/// (that is, a date unaware of time zones). 
-
+/// (that is, a date unaware of time zones).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ParsedDate {
-    pub date: chrono::naive::date::NaiveDate
+    pub date: chrono::naive::date::NaiveDate,
 }
 
 impl ParsedDate {
     pub fn from_ymd(year: i32, month: u32, day: u32) -> ParsedDate {
-        let d = NaiveDate::from_ymd_opt(year, month, day)
-            .expect("invalid or out-of-range date");
-        ParsedDate {
-            date: d
-        }
+        let d = NaiveDate::from_ymd_opt(year, month, day).expect("invalid or out-of-range date");
+        ParsedDate { date: d }
     }
 
     pub fn shift(&mut self, period: Period, count: i16) {
@@ -71,13 +67,13 @@ impl ParsedDate {
                     let new_day = (d - day_offset) as i32;
                     new_date = date.clone()
                         .with_day(new_day as u32)
-                        .and_then( |i| i.with_year(y - y_offset as i32) )
-                        .and_then( |i| i.with_month(m as u32) );
+                        .and_then(|i| i.with_year(y - y_offset as i32))
+                        .and_then(|i| i.with_month(m as u32));
                     day_offset = day_offset + 1;
                     done = new_date.is_some();
                 }
                 new_date
-            },
+            }
             Period::Year => {
                 let mut done = false;
                 let y = date.year();
@@ -97,7 +93,6 @@ impl ParsedDate {
             self.date = new_date.expect("date shift error");
         };
     }
-
 }
 
 impl fmt::Display for ParsedDate {
