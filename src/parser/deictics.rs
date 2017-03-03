@@ -1,5 +1,5 @@
 use super::super::ParsedDate;
-use chrono::prelude::*;
+use chrono::prelude::{Datelike, Local};
 use time::Duration;
 use super::helper_macros::periods;
 
@@ -117,9 +117,12 @@ named!(which_weekday <&[u8], Weekday>,
 );
 
 named!(base_weekday <&[u8], ParsedDate>,
-    do_parse!(
-        wd: which_weekday >> (
-            weekday_calc(wd, 7, 0)
+   ws!(
+       do_parse!(
+           opt!(tag!("this")) >>
+           wd: which_weekday >> (
+               weekday_calc(wd, 7, 0)
+           )
         )
     )
 );
